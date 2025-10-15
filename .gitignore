@@ -1,0 +1,91 @@
+# ==========================
+# 🐍 FASTAPI / PYTHON PROJECT
+# ==========================
+
+# --- Python cache and compiled files ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*$py.class
+
+# --- Virtual environment ---
+venv/
+env/
+ENV/
+.venv/
+.Python
+
+# --- Environment variables ---
+.env
+.env.*
+!.env.example  # Keep a sample env if you have one
+
+# --- IDE / Editor folders ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- OS generated files ---
+.DS_Store
+Thumbs.db
+
+# --- Logs and temporary files ---
+*.log
+*.pot
+*.pyc
+*.tmp
+*.bak
+
+# --- Test & coverage ---
+.coverage
+.tox/
+.nox/
+pytest_cache/
+htmlcov/
+.coverage.*
+.cache/
+
+# --- Build and distribution ---
+build/
+dist/
+*.egg-info/
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+
+# --- Jupyter Notebooks (if used) ---
+.ipynb_checkpoints
+
+# --- SQLite or local databases ---
+*.db
+*.sqlite3
+
+# --- Migrations (optional) ---
+# Uncomment this line if your migrations are auto-generated and can be recreated
+#migrations/
+
+# --- Uvicorn / FastAPI specific ---
+# Sometimes uvicorn stores reload temp files
+*.pid
+
+# --- MyPy / Pyright / Pylint caches ---
+.mypy_cache/
+.pyright/
+.pyre/
+.pytype/
+
+# --- Coverage reports ---
+coverage.xml
+*.cover
+*.py,cover
+
+# --- Docker related ---
+*.pid
+*.seed
+docker-compose.override.yml
+
+# --- Render deployment logs (optional) ---
+render.yaml
