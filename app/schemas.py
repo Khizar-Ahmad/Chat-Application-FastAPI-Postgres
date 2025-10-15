@@ -8,8 +8,22 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     pass
 
-class UserResponse(UserBase):
-    id: int
+class UserResponse(BaseModel):
+    # id: int
+    name:str
+    email:str
+
+    class Config:
+        orm_mode = True
+
+
+# class UserMessages(BaseModel):
+#     # id: int
+#     caption:str
+#     sender:str
+#     receiver:str
+#     seen_flag:bool
+
 
     class Config:
         orm_mode = True
@@ -18,7 +32,8 @@ class login(BaseModel):
     email: str
     password: str
 
-class SendMessage(BaseModel):
+class SendMessages(BaseModel):
+    id: int
     caption: Optional[str] = None
     file: Optional[str] = None
     file_type: Optional[str] = None

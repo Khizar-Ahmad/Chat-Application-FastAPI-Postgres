@@ -65,13 +65,20 @@ from .websocket_realtime_chat import manager
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user)
 
+
 @app.post("/api/users/login", status_code=200)
 def create_user(user: schemas.login, db: Session = Depends(get_db)):
     return crud.login(db, user)
 
+
 @app.get("/api/users/", response_model=list[schemas.UserResponse],status_code=200)
 def read_users(db: Session = Depends(get_db)):
     return crud.get_users(db)
+
+@app.get("/api/messages/{sender}/{receiver}", response_model=list[schemas.SendMessages],status_code=200)
+def retrieve_messages(sender:int,receiver:int,db: Session = Depends(get_db)):
+    return crud.get_Messages_Send_Between_Two_Users(db,sender,receiver)
+
 
 @app.websocket("/ws/{client_id}/{email}")
 async def websocket_endpoint(websocket: WebSocket, client_id: int,email: str):

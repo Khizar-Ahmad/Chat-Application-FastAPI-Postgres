@@ -15,13 +15,15 @@ class ConnectionManager:
             db_user = db_session.query(models.User).filter(models.User.email == email).first()
 
             print(db_user.connection_status)
-            if db_user is not None and db_user.socket_id == 'offline':
+            if db_user is not None and db_user.connection_status == 'offline':
                 self.active_connections[email] = websocket
                 db_user.connection_status='online'
                 db_user.socket_id= email
                 db_session.add(db_user)
                 db_session.commit()
                 db_session.refresh(db_user)
+                print(db_user.connection_status)
+                print('User connected Successfully!')
         finally:
             db_session.close()
 

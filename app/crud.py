@@ -3,6 +3,7 @@ from . import models, schemas
 from .auth import get_password_hash,verify_password,create_access_token
 from .models import User
 from fastapi import HTTPException
+from sqlalchemy import or_, and_
 def create_user(db: Session, user: schemas.UserCreate):
     db_user = models.User(name=user.name, email=user.email,password=user.password)
     hashedPassword=get_password_hash(db_user.password)
@@ -34,3 +35,11 @@ def login(db: Session, user: schemas.login):
 
 def get_users(db: Session):
     return db.query(models.User).all()
+
+def get_Messages_Send_Between_Two_Users(sender,receiver,db: Session):
+    return db.query(models.Messages).filter(
+        or_(
+            and_(models.Messages.sender_id == sender, models.Messages.receiver_id == receiver),
+            and_(models.Messages.sender_id == receiver, models.Messages.receiver_id == sender)
+        )
+    ).all()
