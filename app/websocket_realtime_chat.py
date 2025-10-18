@@ -28,7 +28,7 @@ class ConnectionManager:
             db_session.close()
 
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket):
         db_session = SessionLocal()
         # db_user = models.User(socket_id=websocket)
         # if db_user is not None and  db_user.connection_status == 'online':
@@ -43,6 +43,7 @@ class ConnectionManager:
                 db_session.add(db_user)
                 db_session.commit()
                 db_session.refresh(db_user)
+                await websocket.send_text({"type":"user_connection","name":db_user.name,"email":db_user.email,"connection_status":db_user.connection_status})
                 break
 
 

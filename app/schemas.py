@@ -12,7 +12,7 @@ class UserResponse(BaseModel):
     # id: int
     name:str
     email:str
-
+    connection_status:str
     class Config:
         orm_mode = True
 
