@@ -10,6 +10,7 @@ class UserCreate(UserBase):
 
 class UserResponse(BaseModel):
     # id: int
+    id:int
     name:str
     email:str
     connection_status:str
@@ -25,18 +26,28 @@ class UserResponse(BaseModel):
 #     seen_flag:bool
 
 
-    class Config:
-        orm_mode = True
+    # class Config:
+    #     orm_mode = True
         
 class login(BaseModel):
     email: str
     password: str
 
+
 class SendMessages(BaseModel):
     id: int
     caption: Optional[str] = None
-    file: Optional[str] = None
-    file_type: Optional[str] = None
+    # file: Optional[str] = None
+    # file_type: Optional[str] = None
     sender: int
     receiver: int
-    seen_flag: bool = False  # default False
+    seen_flag: bool = False  
+
+class AllUsersInfo(BaseModel):
+    userInfo: UserResponse
+    data:list[SendMessages]
+
+
+class receiverMessagesResponse(BaseModel):
+    userInfo: UserResponse
+    data: list[SendMessages]

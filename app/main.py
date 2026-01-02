@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import time
 from sqlalchemy.orm import Session
 from . import models, schemas, crud, database
+import json
+from typing import Dict
+
 
 
 models.Base.metadata.create_all(bind=database.engine)
@@ -65,18 +68,23 @@ from .websocket_realtime_chat import manager
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user)
 
+@app.patch("/api/messages/unseen",status_code=200)
+def create_user(user: list[int], db: Session = Depends(get_db)):
+    return crud.updateMessagesStatus(db, user)
+
 
 @app.post("/api/users/login", status_code=200)
 def create_user(user: schemas.login, db: Session = Depends(get_db)):
     return crud.login(db, user)
 
 
-@app.get("/api/users/", response_model=list[schemas.UserResponse],status_code=200)
-def read_users(db: Session = Depends(get_db)):
-    return crud.get_users(db)
+@app.get("/api/users/{user}", response_model=Dict[int,schemas.AllUsersInfo],status_code=200)
+def read_users(user,db: Session = Depends(get_db)):
+    return crud.get_users(db,user)
 
-@app.get("/api/messages/{sender}/{receiver}", response_model=list[schemas.SendMessages],status_code=200)
+@app.get("/api/messages/{sender}/{receiver}", response_model=schemas.receiverMessagesResponse,status_code=200)
 def retrieve_messages(sender:int,receiver:int,db: Session = Depends(get_db)):
+    print(sender,receiver)
     return crud.get_Messages_Send_Between_Two_Users(db,sender,receiver)
 
 
@@ -87,14 +95,22 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int,email: str):
     
     try:
         while True:
+            print('Loop runs')
             data = await websocket.receive_text()
-                
+            print('Hi buddy from the server')
+            print(data)
+            parsed = json.loads(data)
+            # print( parsed["message"])
             # event = data.get("event")
             # msg = data.get("message")
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{client_id} says: {data}")
+            changeStatus='changeStatus'
+            if changeStatus in parsed:
+                manager.change_message_status(parsed)
+            else:
+                await manager.send_personal_message(parsed, websocket)
+                await manager.broadcast(f"Client #{client_id} says: {parsed}")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        await manager.disconnect(websocket)
         # await manager.broadcast(f"Client #{client_id} left the chat")
 
  # Example: {'event': 'chat', 'user': 123, 'message': 'Hello World!'}
