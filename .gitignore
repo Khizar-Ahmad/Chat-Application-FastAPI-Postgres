@@ -22,6 +22,21 @@ ENV/
 .env.*
 !.env.example  # Keep a sample env if you have one
 
+# Ignore venv inside all microservices and api-gateway
+services/*/venv/
+services/*/.venv/
+services/*/env/
+api-gateway/venv/
+api-gateway/.venv/
+api-gateway/env/
+
+
+# Ignore .env inside every service and api-gateway
+services/*/.env
+services/*/.env.*
+api-gateway/.env
+api-gateway/.env.*
+
 # --- IDE / Editor folders ---
 .vscode/
 .idea/
@@ -87,5 +102,6 @@ coverage.xml
 *.seed
 docker-compose.override.yml
 
+services/notification-service/firebase-service-account.json
 # --- Render deployment logs (optional) ---
 render.yaml
