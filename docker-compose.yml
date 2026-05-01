@@ -1,0 +1,79 @@
+services:
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./api-gateway/.env
+    depends_on:
+      - auth-user-service
+      - chat-service
+      - notification-service
+    networks:
+      - chatapp-network
+    restart: unless-stopped
+
+  auth-user-service:
+    build: ./services/auth-user-service
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./services/auth-user-service/.env
+    networks:
+      - chatapp-network
+    restart: unless-stopped
+
+  chat-service:
+    build: ./services/chat-service
+    ports:
+      - "8002:8002"
+    env_file:
+      - ./services/chat-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      auth-user-service:
+        condition: service_started
+    networks:
+      - chatapp-network
+    restart: unless-stopped
+
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./services/notification-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - chatapp-network
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - chatapp-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  chatapp-network:
+    driver: bridge
