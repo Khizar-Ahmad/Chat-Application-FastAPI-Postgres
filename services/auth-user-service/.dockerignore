@@ -4,5 +4,4 @@ __pycache__/
 *.pyo
 .env
 .git
-alembic/versions/
 *.egg-info/
