@@ -28,8 +28,9 @@ app = FastAPI(title="API Gateway", lifespan=lifespan)
 origins = [
     # "http://localhost.tiangolo.com",
     # "https://localhost.tiangolo.com",
-    "http://localhost:3000",  # Next.js dev server
-    "http://127.0.0.1:3000",
+    # "http://localhost:3000",  # Next.js dev server
+    # "http://127.0.0.1:3000",
+    "https://chat-application-by-khizarahmad.netlify.app"
     # "http://localhost:8001",
     # "http://localhost:8002",
     # "http://localhost:8003"
