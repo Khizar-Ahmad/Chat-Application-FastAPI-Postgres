@@ -77,11 +77,25 @@ class ConnectionManager:
         }
 
         if message.sender in self.active_connections:
-            await self.active_connections[message.sender].send_json(payload)
-
+            try:
+                await self.active_connections[message.sender].send_json(payload)
+            except Exception as e:
+                print(f"Failed to send to sender back: {message.sender}: {e}")
+                # remove dead connection
+                if message.sender in self.active_connections:
+                    del self.active_connections[message.sender]
+                    await update_user_status(message.sender, "offline")
+                    print(f"Removed dead connection for user {message.sender}")
         if message.receiver in self.active_connections:
-            await self.active_connections[message.receiver].send_json(payload)
-
+            try: 
+                await self.active_connections[message.receiver].send_json(payload)
+            except Exception as e:
+                print(f"Failed to send to receiver back: {message.receiver}: {e}")
+                # remove dead connection
+                if message.receiver in self.active_connections:
+                    del self.active_connections[message.receiver]
+                    await update_user_status(message.receiver, "offline")
+                    print(f"Removed dead connection for user {message.receiver}")  
         await publish_message_sent_event({
             "message_id":    message.id,
             "sender_id":     message.sender,
@@ -106,10 +120,30 @@ class ConnectionManager:
 
 
     async def broadcast_connection_news(self, message: dict):
+        # for user_id, ws in self.active_connections.items():
+        #     if user_id == message["userId"]:
+        #         continue
+        #     await ws.send_json(message)
+
+        dead_connections = []
+
         for user_id, ws in self.active_connections.items():
             if user_id == message["userId"]:
                 continue
-            await ws.send_json(message)
+            try:
+                await ws.send_json(message)
+            except Exception as e:
+                
+                print(f"Dead connection detected for user {user_id}: {e}")
+                dead_connections.append(user_id)
+
+        
+        for user_id in dead_connections:
+            if user_id in self.active_connections:
+                del self.active_connections[user_id]
+                await update_user_status(user_id, "offline")
+                print(f"Cleaned up dead connection for user {user_id}")
+
 
 
 manager = ConnectionManager()
