@@ -106,16 +106,17 @@ class ConnectionManager:
 
 
     async def change_message_status(self, parsed: dict):
-        message= parsed
         async with SessionLocal() as db:
+    
             await db.execute(
-                sql_update(models.Message)
-                .where(models.Message.id == message.id)
+            sql_update(models.Message)
+            .where(models.Message.id == parsed["id"])
+            .values(seen_flag=True)
             )
-            message.seen_flag=True
-            await db.add(message)
+
             await db.commit()
-            await db.refresh(message)
+
+            
 
 
 
