@@ -141,7 +141,8 @@ async def get_user_by_email(db: AsyncSession, email: str) -> models.User:
 
 
 async def get_all_users_except(db: AsyncSession, exclude_id: int) -> list[models.User]:
-    result = await db.execute(select(models.User).where(models.User.id != exclude_id))
+    result = await db.execute(select(models.User).where(models.User.id != exclude_id,
+        models.User.is_verified == True))
     return result.scalars().all()
 
 
