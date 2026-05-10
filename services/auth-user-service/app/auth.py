@@ -8,7 +8,7 @@ load_dotenv()
 
 SECRET_KEY                  = os.getenv("SECRET_KEY")
 ALGORITHM                   = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1))
 REFRESH_TOKEN_EXPIRE_DAYS   = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -24,7 +24,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(data: dict) -> str:
     payload = data.copy()
-    expire  = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire  = datetime.now(timezone.utc) + timedelta(days=ACCESS_TOKEN_EXPIRE_MINUTES)
     payload.update({"exp": expire, "type": "access"})
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

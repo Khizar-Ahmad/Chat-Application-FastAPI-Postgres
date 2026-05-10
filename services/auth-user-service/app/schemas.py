@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr,Field
 from typing import Optional
 from datetime import datetime
 
@@ -30,6 +30,7 @@ class UserResponse(BaseModel):
     avatar:             Optional[str] = None
     connection_status:  str
     created_at:         Optional[datetime] = None
+    detail: Optional[str]=None
 
     class Config:
         from_attributes = True
@@ -38,6 +39,7 @@ class UserResponse(BaseModel):
 class LoginResponse(BaseModel):
     user:   UserResponse
     token:  str
+    
 
 
 class RefreshResponse(BaseModel):
@@ -54,3 +56,21 @@ class InternalUserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# NEW
+class OTPVerifyRequest(BaseModel):
+    email:  EmailStr
+    otp:    str
+
+
+# NEW
+class ResendOTPRequest(BaseModel):
+    email:  EmailStr
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token:        str
+    new_password: str = Field(..., min_length=6)

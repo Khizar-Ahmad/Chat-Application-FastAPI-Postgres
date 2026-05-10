@@ -125,6 +125,23 @@ async def register_device(request: Request):
 # ── WebSocket Proxy ───────────────────────────────────────────
 # WebSocket cannot use httpx — needs its own proxying logic
 
+@app.post("/api/users/verify-otp")
+async def verify_otp(request: Request):
+    return await proxy(request, f"{AUTH_SERVICE}/verify-otp")
+
+@app.post("/api/users/resend-otp")
+async def resend_otp(request: Request):
+    return await proxy(request, f"{AUTH_SERVICE}/resend-otp")
+    
+@app.post("/api/users/forgot-password")
+async def forgot_password(request: Request):
+    return await proxy(request, f"{AUTH_SERVICE}/forgot-password")
+
+
+@app.post("/api/users/reset-password")
+async def reset_password(request: Request):
+    return await proxy(request, f"{AUTH_SERVICE}/reset-password")
+
 @app.websocket("/ws/{client_id}/{email}")
 async def websocket_proxy(websocket: WebSocket, client_id: int, email: str):
     await websocket.accept()

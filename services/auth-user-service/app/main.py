@@ -33,7 +33,9 @@ app.add_middleware(
 
 @app.post("/signup", response_model=schemas.UserResponse, status_code=201)
 async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(get_db)):
-    return await crud.create_user(db, user)
+    val = await crud.create_user(db, user)
+    val["detail"]= "Registered Successfully, Check OTP and verify your account"
+    return val
 
 
 @app.post("/login", response_model=schemas.LoginResponse, status_code=200)
@@ -78,4 +80,34 @@ async def update_status(
     db: AsyncSession = Depends(get_db)
 ):
     return await crud.update_connection_status(db, user_id, body.connection_status)
+
+@app.post("/verify-otp")
+async def verify_otp(
+    payload: schemas.OTPVerifyRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.verify_otp(db, payload)
+
+
+@app.post("/resend-otp")
+async def resend_otp(
+    payload: schemas.ResendOTPRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.resend_otp(db, payload)
+
+@app.post("/forgot-password")
+async def forgot_password(
+    payload: schemas.ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.forgot_password(db, payload)
+
+
+@app.post("/reset-password")
+async def reset_password(
+    payload: schemas.ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    return await crud.reset_password(db, payload)
 
