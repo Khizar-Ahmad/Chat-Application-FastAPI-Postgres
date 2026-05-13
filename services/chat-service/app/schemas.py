@@ -42,6 +42,8 @@ class ConversationResponse(BaseModel):
     data:       list[MessageResponse]
 
 class UpdateSeenStatus(BaseModel):
+    sender:int
+    receiver:int
     message_ids: list[int]
 
 

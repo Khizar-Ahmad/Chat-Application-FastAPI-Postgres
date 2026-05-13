@@ -116,7 +116,26 @@ class ConnectionManager:
 
             await db.commit()
 
-            
+            payload = {
+            "id":           parsed["id"],
+            "seen_flag":    True,
+            "caption":      parsed["caption"],
+            "sender": parsed["sender"],
+            "receiver": parsed["receiver"],
+            "created_at":   parsed["created_at"]
+             }
+
+            sender_id = parsed.get("sender")
+
+            try:
+                await self.active_connections[sender_id].send_json(payload)
+            except Exception as e:
+                print(f"Failed to send to sender back: {sender_id}: {e}")
+                # remove dead connection
+                if sender_id in self.active_connections:
+                    del self.active_connections[sender_id]
+                    await update_user_status(sender_id, "offline")
+                    print(f"Removed dead connection for user {sender_id}")
 
 
 

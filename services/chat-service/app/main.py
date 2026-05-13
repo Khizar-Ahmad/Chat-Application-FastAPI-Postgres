@@ -8,6 +8,7 @@ from .dependencies import get_current_user_id
 from .websocket_manager import manager
 import json
 from .rabbitmq import close_rabbitmq
+from .schemas import UpdateSeenStatus
 
 
 @asynccontextmanager
@@ -34,7 +35,6 @@ app.add_middleware(
 
 
 @app.get("/users/{user_id}")
-
 async def get_users(
     user_id: int,
     db: AsyncSession = Depends(get_db),
@@ -55,11 +55,12 @@ async def get_messages(
 
 @app.patch("/messages/unseen", status_code=200)
 async def update_seen_status(
-    message_ids: list[int],
+    # message_ids: list[int],
+    payload: UpdateSeenStatus,
     db: AsyncSession = Depends(get_db),
    
 ):
-    return await crud.update_messages_status(db, message_ids)
+    return await crud.update_messages_status(db, payload)
 
 
 @app.websocket("/ws/{client_id}/{email}")

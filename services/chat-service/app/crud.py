@@ -1,8 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, update
+from sqlalchemy import select, or_, and_, update,case, func, desc
 from fastapi import HTTPException
 from . import models, schemas
 from .http_client import get_all_users_except, get_user_by_id
+from .websocket_manager import manager
+from .http_client import update_user_status
+
 
 
 
@@ -15,7 +18,8 @@ async def get_users(db: AsyncSession, current_user_id: int) -> dict:
     result = {
         user["id"]: {
             "userInfo": user,
-            "data": []
+            "data": [],
+            "message":""
         }
         for user in users
     }
@@ -28,11 +32,69 @@ async def get_users(db: AsyncSession, current_user_id: int) -> dict:
     )
     unseen_messages = unseen_result.scalars().all()
 
+    conversation_partner = case(
+        (
+            models.Message.sender == current_user_id,
+            models.Message.receiver
+        ),
+        else_=models.Message.sender
+    ).label("conversation_partner")
+
+    subquery = (
+        select(
+            conversation_partner,
+            func.max(models.Message.created_at).label("latest_time")
+        )
+        .where(
+            or_(
+                models.Message.sender == current_user_id,
+                models.Message.receiver == current_user_id
+            )
+        )
+        .group_by(conversation_partner)
+        .subquery()
+    )
+
+    lastMessages = await db.execute(
+        select(models.Message)
+        .join(
+            subquery,
+            (
+                (
+                    case(
+                        (
+                            models.Message.sender == current_user_id,
+                            models.Message.receiver
+                        ),
+                        else_=models.Message.sender
+                    )
+                    == subquery.c.conversation_partner
+                )
+                &
+                (
+                    models.Message.created_at
+                    == subquery.c.latest_time
+                )
+            )
+        )
+        .order_by(desc(models.Message.created_at))
+    )
+
+    latest_messages = lastMessages.scalars().all()
+    
 
     for msg in unseen_messages:
         if msg.sender in result:
             result[msg.sender]["data"].append(msg)
 
+
+    for msg in latest_messages:
+        if msg.sender in result:
+            result[msg.sender]["message"]=msg.caption
+        elif msg.receiver in result:
+            result[msg.receiver]["message"]=msg.caption
+
+    print("this is the response",result)
     return result
 
 
@@ -78,13 +140,30 @@ async def get_messages_between_users(
 
 
 
-async def update_messages_status(db: AsyncSession, message_ids: list[int]) -> dict:
+async def update_messages_status(db: AsyncSession, payload) -> dict:
     await db.execute(
         update(models.Message)
-        .where(models.Message.id.in_(message_ids))
+        .where(models.Message.id.in_(payload.message_ids))
         .values(seen_flag=True)
     )
     await db.commit()
+    if payload.sender in manager.active_connections:
+        seen_payload = {
+            "messages_seen": True,
+            "message_ids":  payload.message_ids,
+            "sender":       payload.sender,
+            "receiver":     payload.receiver,
+        }
+        try:
+            await manager.active_connections[payload.sender].send_json(seen_payload)
+        except Exception as e:
+            print(f"Failed to send to sender back: {payload.sender}: {e}")
+            # remove dead connection
+            if payload.sender in manager.active_connections:
+                del manager.active_connections[payload.sender]
+                await update_user_status(payload.sender, "offline")
+                print(f"Removed dead connection for user {payload.sender}")
+
     return {"status": "success", "message": "messages status updated successfully"}
 
 
