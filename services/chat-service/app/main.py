@@ -52,9 +52,11 @@ async def get_users(
 async def get_messages(
     sender: int,
     receiver: int,
+    limit: int = 30,
+    before_message_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    return await crud.get_messages_between_users(db, sender, receiver)
+    return await crud.get_messages_between_users(db, sender, receiver,limit,before_message_id)
 
 
 

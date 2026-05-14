@@ -40,6 +40,7 @@ class UserWithUnseenMessages(BaseModel):
 class ConversationResponse(BaseModel):
     userInfo:   UserInfo
     data:       list[MessageResponse]
+    hasMore: bool
 
 class UpdateSeenStatus(BaseModel):
     sender:int

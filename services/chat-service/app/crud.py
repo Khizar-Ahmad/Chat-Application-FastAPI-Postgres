@@ -5,6 +5,7 @@ from . import models, schemas
 from .http_client import get_all_users_except, get_user_by_id
 from .websocket_manager import manager
 from .http_client import update_user_status
+from typing import Optional
 
 
 
@@ -105,41 +106,81 @@ async def get_users(db: AsyncSession, current_user_id: int) -> dict:
 async def get_messages_between_users(
     db: AsyncSession,
     sender_id: int,
-    receiver_id: int
+    receiver_id: int,
+    limit: int = 30,
+    before_message_id: Optional[int] = None
 ) -> dict:
  
     receiver = await get_user_by_id(receiver_id)
 
     if not receiver:
         return {"error": "Receiver not found", "data": []}
-
     
-    result = await db.execute(
-        select(models.Message).where(
-            or_(
-                and_(
-                    models.Message.sender == sender_id,
-                    models.Message.receiver == receiver_id
-                ),
-                and_(
-                    models.Message.sender == receiver_id,
-                    models.Message.receiver == sender_id
-                )
-            )
-        ).order_by(models.Message.created_at)
+    query = select(models.Message).where(
+    or_(
+        and_(
+            models.Message.sender == sender_id,
+            models.Message.receiver == receiver_id
+        ),
+        and_(
+            models.Message.sender == receiver_id,
+            models.Message.receiver == sender_id
+        )
     )
+)
+
+    if before_message_id:
+
+        query = query.where(
+        models.Message.id < before_message_id
+    )
+    
+    query = (
+    query
+    .order_by(models.Message.id.desc())
+    .limit(limit)
+)
+    result = await db.execute(query)
+
     messages = result.scalars().all()
+    messages.reverse()
+    return {
+    "userInfo": {
+        "id":               receiver["id"],
+        "name":             receiver["name"],
+        "email":            receiver["email"],
+        "connection_status": receiver["connection_status"],
+    },
+    "data": messages,
+    "hasMore": len(messages) == limit
+}
+    # result = await db.execute(
+    #     select(models.Message).where(
+    #         or_(
+    #             and_(
+    #                 models.Message.sender == sender_id,
+    #                 models.Message.receiver == receiver_id
+    #             ),
+    #             and_(
+    #                 models.Message.sender == receiver_id,
+    #                 models.Message.receiver == sender_id
+    #             )
+    #         )
+    #     ).order_by(models.Message.created_at)
+    # )
+    # messages = result.scalars().all()
+    
 
   
-    return {
-        "userInfo": {
-            "id":               receiver["id"],
-            "name":             receiver["name"],
-            "email":            receiver["email"],
-            "connection_status": receiver["connection_status"],
-        },
-        "data": messages
-    }
+    # return {
+    #     "userInfo": {
+    #         "id":               receiver["id"],
+    #         "name":             receiver["name"],
+    #         "email":            receiver["email"],
+    #         "connection_status": receiver["connection_status"],
+    #     },
+    #     "data": messages
+    # }
 
 
 
