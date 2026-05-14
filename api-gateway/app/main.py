@@ -142,6 +142,32 @@ async def forgot_password(request: Request):
 async def reset_password(request: Request):
     return await proxy(request, f"{AUTH_SERVICE}/reset-password")
 
+@app.post("/api/upload")
+async def upload_file(request: Request):
+    async with httpx.AsyncClient(timeout=120) as client:
+        body    = await request.body()
+        headers = {
+            key: value for key, value in request.headers.items()
+            if key.lower() not in ["host", "content-length"]
+        }
+        response = await client.post(
+            f"{CHAT_SERVICE}/upload",
+            content = body,
+            headers = headers
+        )
+
+    # handle empty or non-JSON responses safely
+    try:
+        content = response.json()
+    except Exception:
+        content = {"detail": "Upload failed"}
+
+    return JSONResponse(
+        content     = content,
+        status_code = response.status_code
+    )
+    
+
 @app.websocket("/ws/{client_id}/{email}")
 async def websocket_proxy(websocket: WebSocket, client_id: int, email: str):
     await websocket.accept()

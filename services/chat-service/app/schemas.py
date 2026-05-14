@@ -5,8 +5,8 @@ from enum import Enum
 
 
 class FileType(str, Enum):
-    IMAGE = "image"
-    VIDEO = "video"
+    IMAGE = "IMAGE"
+    VIDEO = "VIDEO"
 
 
 class MessageResponse(BaseModel):

@@ -5,8 +5,8 @@ from .database import Base
 
 
 class FileType(enum.Enum):
-    IMAGE = "image"
-    VIDEO = "video"
+    IMAGE = "IMAGE"
+    VIDEO = "VIDEO"
 
 
 class Message(Base):

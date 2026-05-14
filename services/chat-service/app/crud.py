@@ -19,7 +19,8 @@ async def get_users(db: AsyncSession, current_user_id: int) -> dict:
         user["id"]: {
             "userInfo": user,
             "data": [],
-            "message":""
+            "message":"",
+            "file_type":None
         }
         for user in users
     }
@@ -91,8 +92,10 @@ async def get_users(db: AsyncSession, current_user_id: int) -> dict:
     for msg in latest_messages:
         if msg.sender in result:
             result[msg.sender]["message"]=msg.caption
+            result[msg.sender]["file_type"]=msg.file_type
         elif msg.receiver in result:
             result[msg.receiver]["message"]=msg.caption
+            result[msg.receiver]["file_type"]=msg.file_type
 
     print("this is the response",result)
     return result
