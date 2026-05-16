@@ -191,17 +191,17 @@ async def update_messages_status(db: AsyncSession, payload) -> dict:
         .values(seen_flag=True)
     )
     await db.commit()
-    if payload.sender in manager.active_connections:
-        seen_payload = {
+    seen_payload = {
             "messages_seen": True,
             "message_ids":  payload.message_ids,
             "sender":       payload.sender,
             "receiver":     payload.receiver,
         }
+    if payload.sender in manager.active_connections:
 
         for ws in list(manager.active_connections[payload.sender]):
             try:
-                await ws.send_json(payload)
+                await ws.send_json(seen_payload)
             except Exception as e:
                 print(f"Failed to send to sender back: {payload.sender}: {e}")
                 # remove dead connection
@@ -216,7 +216,7 @@ async def update_messages_status(db: AsyncSession, payload) -> dict:
     if payload.receiver in manager.active_connections:
         for ws in list(manager.active_connections[payload.receiver]):
             try:
-                await ws.send_json(payload)
+                await ws.send_json(seen_payload)
             except Exception as e:
                 print(f"Failed to send back to receiver: {payload.receiver}: {e}")
                 # remove dead connection
