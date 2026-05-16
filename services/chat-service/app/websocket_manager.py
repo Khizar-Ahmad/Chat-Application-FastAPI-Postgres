@@ -100,7 +100,7 @@ class ConnectionManager:
                 except Exception as e:
                     print(f"Failed to send to sender back: {message.sender}: {e}")
                     # remove dead connection
-                    if message.sender in self.active_connections and len(self.active_connections[message.sender])>0:
+                    if message.sender in self.active_connections:
                         self.active_connections[message.sender].discard(ws)
                         print(f"Total live connections for user: {message.sender} is {len(self.active_connections[message.sender])}")
                         if len(self.active_connections[message.sender])==0:
@@ -114,7 +114,7 @@ class ConnectionManager:
                 except Exception as e:
                     print(f"Failed to send to receiver back: {message.receiver}: {e}")
                     # remove dead connection
-                    if message.receiver in self.active_connections and len(self.active_connections[message.receiver])>0:
+                    if message.receiver in self.active_connections:
                         self.active_connections[message.receiver].discard(ws)
                         print(f"Total live connections for user: {message.receiver} is {len(self.active_connections[message.receiver])}")
                         if len(self.active_connections[message.receiver])==0:
@@ -163,13 +163,29 @@ class ConnectionManager:
                     except Exception as e:
                         print(f"Failed to send to sender back: {sender_id}: {e}")
                         # remove dead connection
-                        if sender_id in self.active_connections and len(self.active_connections[sender_id])>0:
+                        if sender_id in self.active_connections:
                             self.active_connections[sender_id].discard(ws)
                             print(f"Total live connections for user: {sender_id} is {len(self.active_connections[sender_id])}")
                             if len(self.active_connections[sender_id])==0:
                                 await update_user_status(sender_id, "offline")
                                 del self.active_connections[sender_id]
                                 print(f"Removed dead connection for user {sender_id}")
+
+            receiver_id = parsed.get("receiver")
+            if receiver_id in self.active_connections:
+                for ws in list(self.active_connections[receiver_id]):
+                    try:
+                        await ws.send_json(payload)
+                    except Exception as e:
+                        print(f"Failed to send to sender back: {receiver_id}: {e}")
+                        # remove dead connection
+                        if receiver_id in self.active_connections:
+                            self.active_connections[receiver_id].discard(ws)
+                            print(f"Total live connections for user: {receiver_id} is {len(self.active_connections[receiver_id])}")
+                            if len(self.active_connections[receiver_id])==0:
+                                await update_user_status(receiver_id, "offline")
+                                del self.active_connections[receiver_id]
+                                print(f"Removed dead connection for user {receiver_id}")
 
             # try:
             #     await self.active_connections[sender_id].send_json(payload)
