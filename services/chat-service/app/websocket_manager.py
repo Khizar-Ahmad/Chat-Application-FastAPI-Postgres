@@ -42,14 +42,14 @@ class ConnectionManager:
             await update_user_status(user_id, "online")
 
 
-        print(f"User {email} connected with id {user_id}")
+            print(f"User {email} connected with id {user_id}")
 
-        payload = {
-            "userId":           user_id,
-            "connectionNews":   "user_connected",
-            "connection_status": "online"
-        }
-        await self.broadcast_connection_news(payload)
+            payload = {
+                "userId":           user_id,
+                "connectionNews":   "user_connected",
+                "connection_status": "online"
+            }
+            await self.broadcast_connection_news(payload)
 
 
     async def disconnect(self, websocket: WebSocket):
