@@ -198,15 +198,30 @@ async def update_messages_status(db: AsyncSession, payload) -> dict:
             "sender":       payload.sender,
             "receiver":     payload.receiver,
         }
-        try:
-            await manager.active_connections[payload.sender].send_json(seen_payload)
-        except Exception as e:
-            print(f"Failed to send to sender back: {payload.sender}: {e}")
-            # remove dead connection
-            if payload.sender in manager.active_connections:
-                del manager.active_connections[payload.sender]
-                await update_user_status(payload.sender, "offline")
-                print(f"Removed dead connection for user {payload.sender}")
+
+        for ws in list(manager.active_connections[payload.sender]):
+            try:
+                await ws.send_json(payload)
+            except Exception as e:
+                print(f"Failed to send to sender back: {payload.sender}: {e}")
+                # remove dead connection
+                if payload.sender in manager.active_connections and len(manager.active_connections[payload.sender])>0:
+                    manager.active_connections[payload.sender].discard(ws)
+                    print(f"Total live connections for user: {payload.sender} is {len(manager.active_connections[payload.sender])}")
+                    if len(manager.active_connections[payload.sender])==0:
+                        await update_user_status(payload.sender, "offline")
+                        del manager.active_connections[payload.sender]
+                        print(f"Removed dead connection for user {payload.sender}")
+
+        # try:
+        #     await manager.active_connections[payload.sender].send_json(seen_payload)
+        # except Exception as e:
+        #     print(f"Failed to send to sender back: {payload.sender}: {e}")
+        #     # remove dead connection
+        #     if payload.sender in manager.active_connections:
+        #         del manager.active_connections[payload.sender]
+        #         await update_user_status(payload.sender, "offline")
+        #         print(f"Removed dead connection for user {payload.sender}")
 
     return {"status": "success", "message": "messages status updated successfully"}
 

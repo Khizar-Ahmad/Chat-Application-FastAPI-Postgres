@@ -111,29 +111,58 @@ async def upload_file(
     # deliver via WebSocket
     if message.sender in manager.active_connections:
         # await manager.active_connections[message.sender].send_json(payload)
-        try:
-            print(payload)
-            await manager.active_connections[message.sender].send_json(payload)
-        except Exception as e:
-            print(f"Failed to send to sender back: {message.sender}: {e}")
-            # remove dead connection
-            if message.sender in manager.active_connections:
-                del manager.active_connections[message.sender]
-                await update_user_status(message.sender, "offline")
-                print(f"Removed dead connection for user {message.sender}")
+
+        for ws in list(manager.active_connections[message.sender]):
+            try:
+                await ws.send_json(payload)
+            except Exception as e:
+                print(f"Failed to send to sender back: {message.sender}: {e}")
+                # remove dead connection
+                if message.sender in manager.active_connections and len(manager.active_connections[message.sender])>0:
+                    manager.active_connections[message.sender].discard(ws)
+                    print(f"Total live connections for user: {message.sender} is {len(manager.active_connections[message.sender])}")
+                    if len(manager.active_connections[message.sender])==0:
+                        await update_user_status(message.sender, "offline")
+                        del manager.active_connections[message.sender]
+                        print(f"Removed dead connection for user {message.sender}")
+        # try:
+        #     print(payload)
+        #     await manager.active_connections[message.sender].send_json(payload)
+        # except Exception as e:
+        #     print(f"Failed to send to sender back: {message.sender}: {e}")
+        #     # remove dead connection
+        #     if message.sender in manager.active_connections:
+        #         del manager.active_connections[message.sender]
+        #         await update_user_status(message.sender, "offline")
+        #         print(f"Removed dead connection for user {message.sender}")
 
     # if message.receiver in manager.active_connections:
     #     await manager._safe_send(message.receiver, payload)
     if message.receiver in manager.active_connections:
-        try: 
-            await manager.active_connections[message.receiver].send_json(payload)
-        except Exception as e:
-            print(f"Failed to send to receiver back: {message.receiver}: {e}")
-            # remove dead connection
-            if message.receiver in manager.active_connections:
-                del manager.active_connections[message.receiver]
-                await update_user_status(message.receiver, "offline")
-                print(f"Removed dead connection for user {message.receiver}")
+
+        for ws in list(manager.active_connections[message.receiver]):
+            try: 
+                await ws.send_json(payload)
+            except Exception as e:
+                print(f"Failed to send to receiver back: {message.receiver}: {e}")
+                # remove dead connection
+                if message.receiver in manager.active_connections and len(manager.active_connections[message.receiver])>0:
+                    manager.active_connections[message.receiver].discard(ws)
+                    print(f"Total live connections for user: {message.receiver} is {len(manager.active_connections[message.receiver])}")
+                    if len(manager.active_connections[message.receiver])==0:
+                        await update_user_status(message.receiver, "offline")
+                        del manager.active_connections[message.receiver]
+                        print(f"Removed dead connection for user {message.receiver}")
+
+        # try: 
+        #     await manager.active_connections[message.receiver].send_json(payload)
+        # except Exception as e:
+        #     print(f"Failed to send to receiver back: {message.receiver}: {e}")
+        #     # remove dead connection
+        #     if message.receiver in manager.active_connections:
+        #         del manager.active_connections[message.receiver]
+        #         await update_user_status(message.receiver, "offline")
+        #         print(f"Removed dead connection for user {message.receiver}")
 
     # publish to RabbitMQ for notification
     await publish_message_sent_event({
