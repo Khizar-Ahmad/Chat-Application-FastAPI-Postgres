@@ -4,7 +4,7 @@ from .http_client import get_user_by_email, update_user_status
 from sqlalchemy import select, update as sql_update
 from . import models
 import json
-from .rabbitmq import publish_message_sent_event
+# from .rabbitmq import publish_message_sent_event
 
 
 class ConnectionManager:
@@ -121,17 +121,14 @@ class ConnectionManager:
                             await update_user_status(message.receiver, "offline")
                             del self.active_connections[message.receiver]
                             print(f"Removed dead connection for user {message.receiver}")
-                    # if message.receiver in self.active_connections:
-                    #     del self.active_connections[message.receiver]
-                    #     await update_user_status(message.receiver, "offline")
-                    #     print(f"Removed dead connection for user {message.receiver}")  
-        await publish_message_sent_event({
-            "message_id":    message.id,
-            "sender_id":     message.sender,
-            "receiver_id":   message.receiver,
-            "caption":       message.caption,
-            "receiver_online": message.receiver in self.active_connections
-        })
+                   
+        # await publish_message_sent_event({
+        #     "message_id":    message.id,
+        #     "sender_id":     message.sender,
+        #     "receiver_id":   message.receiver,
+        #     "caption":       message.caption,
+        #     "receiver_online": message.receiver in self.active_connections
+        # })
 
 
     async def change_message_status(self, parsed: dict):

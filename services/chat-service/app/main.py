@@ -7,7 +7,7 @@ from .database import get_db, engine,SessionLocal
 from .dependencies import get_current_user_id
 from .websocket_manager import manager
 import json
-from .rabbitmq import close_rabbitmq, publish_message_sent_event
+# from .rabbitmq import close_rabbitmq, publish_message_sent_event
 from .schemas import UpdateSeenStatus
 from typing import Optional
 from .s3_upload import validate_and_upload
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(models.Base.metadata.create_all)
     print("Chat Service started")
     yield
-    await close_rabbitmq()
+    # await close_rabbitmq()
     await engine.dispose()
     print("Chat Service stopped")
 
@@ -125,19 +125,7 @@ async def upload_file(
                         await update_user_status(message.sender, "offline")
                         del manager.active_connections[message.sender]
                         print(f"Removed dead connection for user {message.sender}")
-        # try:
-        #     print(payload)
-        #     await manager.active_connections[message.sender].send_json(payload)
-        # except Exception as e:
-        #     print(f"Failed to send to sender back: {message.sender}: {e}")
-        #     # remove dead connection
-        #     if message.sender in manager.active_connections:
-        #         del manager.active_connections[message.sender]
-        #         await update_user_status(message.sender, "offline")
-        #         print(f"Removed dead connection for user {message.sender}")
-
-    # if message.receiver in manager.active_connections:
-    #     await manager._safe_send(message.receiver, payload)
+        
     if message.receiver in manager.active_connections:
 
         for ws in list(manager.active_connections[message.receiver]):
@@ -154,24 +142,16 @@ async def upload_file(
                         del manager.active_connections[message.receiver]
                         print(f"Removed dead connection for user {message.receiver}")
 
-        # try: 
-        #     await manager.active_connections[message.receiver].send_json(payload)
-        # except Exception as e:
-        #     print(f"Failed to send to receiver back: {message.receiver}: {e}")
-        #     # remove dead connection
-        #     if message.receiver in manager.active_connections:
-        #         del manager.active_connections[message.receiver]
-        #         await update_user_status(message.receiver, "offline")
-        #         print(f"Removed dead connection for user {message.receiver}")
+       
 
     # publish to RabbitMQ for notification
-    await publish_message_sent_event({
-        "message_id":      message.id,
-        "sender_id":       message.sender,
-        "receiver_id":     message.receiver,
-        "caption":         caption or "Sent a file",
-        "receiver_online": message.receiver in manager.active_connections
-    })
+    # await publish_message_sent_event({
+    #     "message_id":      message.id,
+    #     "sender_id":       message.sender,
+    #     "receiver_id":     message.receiver,
+    #     "caption":         caption or "Sent a file",
+    #     "receiver_online": message.receiver in manager.active_connections
+    # })
 
     return payload
 
