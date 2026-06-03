@@ -110,18 +110,19 @@ async def update_seen_status(request: Request):
 
 
 
-@app.get("/api/send/email/{user}")
-async def send_email(user: str, request: Request):
-    return await proxy(request, f"{NOTIFICATION_SERVICE}/send/email/{user}")
+# @app.get("/api/send/email/{user}")
+# async def send_email(user: str, request: Request):
+#     return await proxy(request, f"{NOTIFICATION_SERVICE}/send/email/{user}")
 
 
-@app.get("/api/task-status/{task_id}")
-async def task_status(task_id: str, request: Request):
-    return await proxy(request, f"{NOTIFICATION_SERVICE}/task-status/{task_id}")
+# @app.get("/api/task-status/{task_id}")
+# async def task_status(task_id: str, request: Request):
+#     return await proxy(request, f"{NOTIFICATION_SERVICE}/task-status/{task_id}")
 
-@app.post("/api/notifications/register-device")
-async def register_device(request: Request):
-    return await proxy(request, f"{NOTIFICATION_SERVICE}/register-device")
+# @app.post("/api/notifications/register-device")
+# async def register_device(request: Request):
+#     return await proxy(request, f"{NOTIFICATION_SERVICE}/register-device")
+
 # ── WebSocket Proxy ───────────────────────────────────────────
 # WebSocket cannot use httpx — needs its own proxying logic
 
